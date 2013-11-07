@@ -50,7 +50,9 @@
   [serialized-request]
   (let [encoded (:body64 serialized-request)
         bytes (.getBytes ^String encoded)
-        decoded (b64/decode bytes)
+        decoded (if (= encoded "")
+                  (byte-array [])
+                  (b64/decode bytes))
         stream (ByteArrayInputStream. decoded)]
     (assoc serialized-request :body stream)))
 
