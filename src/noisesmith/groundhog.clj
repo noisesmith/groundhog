@@ -18,11 +18,11 @@
   [byte-array]
   byte-array)
 
-(defn transform-as-string
+(defn make-transform-as-string
   "A helper function for making sanitizers. Not guaranteed to be useful if the
    request body is not 8 bit clean."
   [f]
-  (fn [byte-array]
+  (fn transform-as-string [byte-array]
     (-> byte-array
         (#(String. ^bytes %))
         f
