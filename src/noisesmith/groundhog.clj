@@ -15,15 +15,18 @@
 
 (defn default-sanitize
   "The non-sanitizing sanitize"
-  [base64-byte-array]
-  base64-byte-array)
+  [byte-array]
+  byte-array)
 
 (defn transform-as-string
-  [base64-byte-array f]
-  (-> base64-byte-array
-      (#(String. ^bytes %))
-      f
-      (#(.getBytes ^String %))))
+  "A helper function for making sanitizers. Not guaranteed to be useful if the
+   request body is not 8 bit clean."
+  [f]
+  (fn [byte-array]
+    (-> byte-array
+        (#(String. ^bytes %))
+        f
+        (#(.getBytes ^String %)))))
 
 (defn default-store
   [serialized-request]
