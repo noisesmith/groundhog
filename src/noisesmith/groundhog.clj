@@ -29,10 +29,12 @@
         (#(.getBytes ^String %)))))
 
 (defn default-store
+  "Default implementation to store all requests for later replay"
   [serialized-request]
   (swap! requests conj (assoc serialized-request :time (Date.))))
 
 (defn default-replay
+  "Default implementation to steal requests and replace them with stored ones."
   [request]
   (let [{:keys [uri remote-addr]} request
         route-re #"/replay/([0-9])+"
@@ -43,6 +45,8 @@
 
 
 (defn deserialize
+  "Recreates a request, complete with :body stream to read from, out of a
+   serialized request"
   [serialized-request]
   (let [encoded (:body64 serialized-request)
         bytes (.getBytes ^String encoded)
@@ -51,6 +55,8 @@
     (assoc serialized-request :body stream)))
 
 (defn tee-stream
+  "Given a stream we can read from, returns the eagerly read bytes of the stream,
+   plus a new stream that will provide those same contents."
   [stream]
   (let [buffer (ByteArrayOutputStream.)
         _ (io/copy stream buffer)
@@ -76,20 +82,21 @@
 (defn groundhog
   "A ring middleware to record and then retrieve and optionally replay requests.
    Opts:
-   sanitize
-            will get a byte-array and should return one, and has the opportunity
-       to remove any data that may be considered sensitive before storage. We
-       use byte array because the input may not be a string (though it usually
-       will be).
-            defaults to identity
-   store
-            will get the serialized form of the request as an argument
-            defaults to conjing on a global atom in this namespace.
-   replay
-            a predicate on the request, if it returns a serialized request, that
-       request will be replayed
-            defaults to looking for /replay/<count> and retrieving from the
-       request atom in this namespace"
+   :sanitize
+      will get a byte-array and should return one, and has the opportunity
+        to remove any data that may be considered sensitive before storage. We
+        use byte array because the input may not be a string (though it usually
+        will be).
+      defaults to identity
+   :store
+      will get the serialized form of the request as an argument
+      defaults to adding a timestamp and conjing on a global atom in this
+        namespace.
+   :replay
+      a predicate on the request, if it returns a serialized request, that
+        request will be replayed
+      defaults to looking for /replay/<count> and retrieving from the
+        request atom in this namespace"
   [handler & [{:keys [sanitize store replay]
                :or {sanitize default-sanitize
                     store default-store
