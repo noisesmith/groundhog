@@ -37,7 +37,7 @@
   "Default implementation to steal requests and replace them with stored ones."
   [request]
   (let [{:keys [uri remote-addr]} request
-        route-re #"/replay/([0-9])+"
+        route-re #"/replay/([0-9]+)"
         [_ match-num-str] (re-matches route-re uri)]
     (when (and (= remote-addr "127.0.0.1")
                match-num-str)
