@@ -104,7 +104,7 @@
                     store default-store
                     replay default-replay}
                :as opts}]]
-  (fn [request]
+  (fn groundhog-handler [request]
     (if-let [stored (replay request)]
       ;; if replay returns truthy, we do not store the request, and we replay
       ;; the data that it hands back to us
