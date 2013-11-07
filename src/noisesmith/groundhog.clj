@@ -78,7 +78,7 @@
          duplicated-request (assoc request
                               :body body
                               :body64 encoded)]
-    (store (serialize duplicated-request))
+    (future (store (serialize duplicated-request)))
     duplicated-request))
 
 (defn groundhog
