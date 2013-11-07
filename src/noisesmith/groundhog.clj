@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [clojure.data.codec.base64 :as b64])
   (:import (java.io ByteArrayInputStream
-                    ByteArrayOutputStream)))
+                    ByteArrayOutputStream)
+           (java.util Date)))
 
 (defonce requests (atom []))
 
@@ -26,7 +27,7 @@
 
 (defn default-store
   [serialized-request]
-  (swap! requests conj serialized-request))
+  (swap! requests conj (assoc serialized-request :time (Date.))))
 
 (defn default-replay
   [request]
