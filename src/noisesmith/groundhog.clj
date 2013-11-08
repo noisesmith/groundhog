@@ -11,22 +11,30 @@
   "Make a version of the debug-request that can be transperently printed and
    read."
   [debug-request]
-  (dissoc debug-request :body))
+  (-> debug-request
+      (#(assoc % :body64 (String.
+                          ^bytes
+                          (b64/encode
+                           (:body-bytes %)))))
+      (dissoc :body-bytes :body)))
 
 (defn default-sanitize
   "The non-sanitizing sanitize"
-  [byte-array]
-  byte-array)
+  [request]
+  request)
 
 (defn make-transform-as-string
   "A helper function for making sanitizers. Not guaranteed to be useful if the
-   request body is not 8 bit clean."
+   request body is not 8 bit clean, or if you need to sanitize something other
+   than the request body."
   [f]
-  (fn transform-as-string [byte-array]
-    (-> byte-array
+  (fn transform-as-string [request]
+    (-> request
+        :body-bytes
         (#(String. ^bytes %))
         f
-        (#(.getBytes ^String %)))))
+        (#(.getBytes ^String %))
+        (#(assoc request :body-bytes %)))))
 
 (defn default-store
   "Default implementation to store all requests for later replay"
@@ -71,14 +79,14 @@
   [request sanitize store]
   (let [{body :stream
          contents :contents} (tee-stream (:body request))
-         encoded-bytes (-> contents
+         clean-request (-> request
+                           (assoc :body-bytes contents)
                            sanitize
-                           b64/encode)
-         encoded (String. ^bytes encoded-bytes)
-         duplicated-request (assoc request
-                              :body body
-                              :body64 encoded)]
-    (future (store (serialize duplicated-request)))
+                           serialize)
+         duplicated-request (assoc request :body body)]
+    ;; storing in a thread so that a disk or network op does not slow down
+    ;; request response
+    (future (store clean-request))
     duplicated-request))
 
 (defn groundhog
