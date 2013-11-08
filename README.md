@@ -23,7 +23,6 @@ In your ring handler:
     (ns app.ns
       (:require ...
                 [noisesmith.groundhog :as groundhog]))
-    
 
     (def handler
       (-> default/handler
@@ -54,16 +53,16 @@ Sanitize should take a and return a request map, and probably wants to check and
       (try
          (->> rq
               :body-bytes
-      	      String.
-	      cheshire/read-string
-	      (walk/postwalk (fn [e]
-	                       (if (map? e)
-			         (dissoc e "password")
-				 e))
+              String.
+              cheshire/read-string
+              (walk/postwalk (fn [e]
+                               (if (map? e)
+                                 (dissoc e "password")
+                                 e))
              cheshire/generate-string
-	     .getBytes
-	     (assoc rq :body-bytes %))
-	 (catch Exception e ;; not a json body?
-	        rq)))
+             .getBytes
+             (assoc rq :body-bytes %))
+         (catch Exception e ;; not a json body?
+                rq)))
 
  Since your body is likely text, the `make-transform-as-string` function is provided to use a sanitizer that takes and returns a String. Byte-array is the default because the body may not be 8 bit clean (depending on your client, and what they decide to try to send you).
