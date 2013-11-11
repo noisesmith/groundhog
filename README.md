@@ -66,3 +66,7 @@ Sanitize should take a and return a request map, and probably wants to check and
                 rq)))
 
  Since your body is likely text, the `make-transform-as-string` function is provided to use a sanitizer that takes and returns a String. Byte-array is the default because the body may not be 8 bit clean (depending on your client, and what they decide to try to send you).
+
+## License
+
+Licensed under [EPL](http://www.eclipse.org/legal/epl-v10.html)
